@@ -19,15 +19,101 @@
 		\vfill
 		{\Large Enero 2026 \par}
 	\end{titlepage} 
+	
 	\newpage
 	\tableofcontents
+	
 	\newpage
 	\section{Introdución}
+	Gracias a la gran ayuda de la humanidad nuestra planeta sufré provocando muchos problemas como los 
+	siguientes:
+	1. La perdida de especies
+	2. El calentamiento global
+	3. La contaminación de agua y aire
+	4. La deforestación y degradación de ecosistemas
+	5. la sobreexplotación de los recursos primarios 
+	6. El cambio climático
+
+	Este último es el que muchas personas están notando ya que a la hora de decidir el conjunto de prendas 
+	y accesorios que van a llevar no solo piensan en el ambiente que van a estar,con quien van a estar,si
+	me quedará bien por el físico,etc, sino que piensan el clima que podría estar y claro aunque los
+	meteorologos intenten hacer predicciones precisas gracias a las ayudas humanas estos no logran 
+	grandes preciones provocando que la gente este muy indecisa antes de salir.
+	
+	Estas indeciones hacen que muchas personas no quieran salir a la calle o que les de igual que llevar y
+	acaben poniendose enfermos o que lleven demasiadas prendas o accesorios para cuidarse del frío,calor,lluvia
+	o nieve o cualquier tipo de clima.Es por tanto que se me ha ocurrido desarrollar una aplicación movil donde,
+	los usuarios al sacarse una foto puedan ver si las prendas que llevan puestas están bien para salir.
+	
 	\newpage
 	\section{Motivación}
+	La motivación de este proyecto surgió cuando se  observó que muchos adolescentes no prestan atención a las indicaciones 
+	del clima que dice los meteorólogos en las cadenas de noticias.Este suceso ha provocado  la inspiración de
+	crear este asesor inteligente de vestimenta en función del clima para que sepan si sus prendas son 
+	adecuadas para todo el día o para el tiempo en que estén en el instituto o para cualquier tipo de 
+	ocasión en las que vayan a salir.
+
 	\newpage
-	\section{Desarrollo}
+	\section{Objetivo de la propuesta}
+	Mis objetivos de la propuesta serán que el asesor inteligente en función del clima haga 
+	las siguientes funciones:
+	1. Detección de la persona usando un modelo preentrenado de YOLO
+	2. Segmentación de las prendas usando un modelo de segmentación de YOLO
+	3. Clasificación de determinadas prendas o accesorios 
+	4. Determinar un diagnóstico en función de la recopilación de datos,es decir,de las prendas que lleva.
+	5. Dar el diagnóstico al usuario para que sepa si lleva ropa adecuada o no para salir a la calle.
+	
 	\newpage
-	\section{Herramientas}
+	\section{Descripción técnica del trabajo realizado}
+	Para realizar el asesor inteligente primero se ha desarrollado unos mockups para la integración del agente de forma
+	intuitiva.
+	Segundo se ha desarrollado luego donde estaría el asesor inteligente en el backend de la aplicación.
+	Para desarrollar el el asesor inteligente se siguio la siguiente metodología:
+	
+	Primero se entreno a un modelo preentrando el yolov11.n para la detección de personas para 
+	que cuando el usuario subiera una imagen o se sacará una foto con el atuendo que llevase ,el cual por 
+	defecto tiene la clase persona que es tiene el id = 0 entonces la detectara.
+	
+	Por lo que únicamente se creo una función llamada detect_person,donde se le pasa una foto con una persona,
+	se  lee con la librería de cv2 calcula la confianza,calcula las coordenadas de la caja delimitadora y halla el id que
+	identifica el objeto alcanzado que en nuestro caso es la persona.Para ello es necesario que tenga un porcentaje de confianza
+	superior al 50 por ciento y que el id de la clase detectada sea una persona.Tras hallar a la persona esta imagen con el bounding 
+	box hecho se le lleva a otra función para recortarla donde esta la persona quitando aspectos del fondo.
+	
+	Segundo se entreno a un modelo de detección de determinados tipos de prenda usando un modelo preentrenado yolov11 usando
+	el dataset llamado fashion-detector elaborado por el autor samuel-gonzalez-duran hallado en roboflow.El cual tiene
+	la siguientes clases : 'bag', 'dress', 'hat', 'jacket', 'pants', 'shirt', 'shoe', 'shorts', 'skirt' y  'sunglass'.
+
+	Tercero se elaboro una CNN para clasificar el tipo de zapatos para mejorar la predicción y,por último,conectar la api open-meteo
+	a nuestro backend a la hora de clasificar los zapatos y detectar la ropa que lleva puesta para estableciendo una serie de parametros 
+	el asesor le diga al usuario si las prendas que llevan son correctas o no en función de las predicciones climaticas y estadisticas que
+	ha calculado el asesor a través de los datos adquiridos.
+
+	
+
+	
 	\newpage
+	\section{Fuentes y tecnologías utilizadas}
+	Las fuentes que se han utilizado han sido roboflow para la obtención de los datasets de los modelos preentrenados,la fuente oficial de 
+	ultralytics,la documentación oficial de la api open-meteo y las tecnologías utilizadas son python,cv2,yolo,cnn. 
+
+	\newpage
+	\section{Conclusiones y propuestas de ampliación}
+	Como conclusión del proyecto se ha pensado que podría ayudar a gente a decidir más rápido sus prendas y accesorios para salir sin 
+	preocuparse de ver noticias o si eres muy depistado.
+	En cuanto a propuestas de ampliación sería mejorar el diagnostico estableciendo características de las telas de las prendas y una posible
+	integración de voz para decirle a la gente la forma tanto escrito como oral para ayudar a las personas que no son capaces de verse.
+
+	\newpage
+	\section{Indicación de herramientas/tecnologías con las que les hubiera gustado contar}
+	Me hubiera gustado tener mejor cpu y gpu para el desarrollo para no pegarme muchas horas.
+
+	\newpage
+	\section{Diario de reuniones}
+	Todos los días desde que se empezo la entrega de 10 a.m a 10.15 a.m
+	
+	\newpage
+	\section{Creditos materiales no originales del grupo}
+	1. Fotos
+	2. Datasets
 \end{document}

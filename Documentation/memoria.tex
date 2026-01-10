@@ -65,44 +65,177 @@
 	
 	\newpage
 	\section{Descripción técnica del trabajo realizado}
-	Para realizar el asesor inteligente primero se ha desarrollado unos mockups para la integración del agente de forma
-	intuitiva.
-	Segundo se ha desarrollado luego donde estaría el asesor inteligente en el backend de la aplicación.
-	Para desarrollar el el asesor inteligente se siguio la siguiente metodología:
 	
-	Primero se entreno a un modelo preentrando el yolov11.n para la detección de personas para 
-	que cuando el usuario subiera una imagen o se sacará una foto con el atuendo que llevase ,el cual por 
-	defecto tiene la clase persona que es tiene el id = 0 entonces la detectara.
-	
-	Por lo que únicamente se creo una función llamada detect_person,donde se le pasa una foto con una persona,
-	se  lee con la librería de cv2 calcula la confianza,calcula las coordenadas de la caja delimitadora y halla el id que
-	identifica el objeto alcanzado que en nuestro caso es la persona.Para ello es necesario que tenga un porcentaje de confianza
-	superior al 50 por ciento y que el id de la clase detectada sea una persona.Tras hallar a la persona esta imagen con el bounding 
-	box hecho se le lleva a otra función para recortarla donde esta la persona quitando aspectos del fondo.
-	
-	Segundo se entreno a un modelo de detección de determinados tipos de prenda usando un modelo preentrenado yolov11 usando
-	el dataset llamado fashion-detector elaborado por el autor samuel-gonzalez-duran hallado en roboflow.El cual tiene
-	la siguientes clases : 'bag', 'dress', 'hat', 'jacket', 'pants', 'shirt', 'shoe', 'shorts', 'skirt' y  'sunglass'.
 
-	Tercero se elaboro una CNN para clasificar el tipo de zapatos para mejorar la predicción y,por último,conectar la api open-meteo
-	a nuestro backend a la hora de clasificar los zapatos y detectar la ropa que lleva puesta para estableciendo una serie de parametros 
-	el asesor le diga al usuario si las prendas que llevan son correctas o no en función de las predicciones climaticas y estadisticas que
-	ha calculado el asesor a través de los datos adquiridos.
 
-	
+	\section{Descripción técnica del sistema}
+
+El sistema desarrollado implementa un asesor inteligente de outfits basado en técnicas de visión por computador, aprendizaje profundo y obtención de información contextual en tiempo real. A partir de una imagen de entrada, el sistema es capaz de segmentar prendas de vestir, clasificar los distintos tipos de ropa y calzado, obtener información meteorológica según la ubicación del usuario y generar una recomendación personalizada.
+
+\subsection{Arquitectura del sistema}
+
+La arquitectura del sistema se organiza en un pipeline modular compuesto por los siguientes componentes:
+
+\begin{itemize}
+    \item Segmentación semántica de prendas
+    \item Clasificación de ropa
+    \item Clasificación de calzado
+    \item Obtención de contexto (ubicación, clima y hora)
+    \item Sistema de recomendación
+    \item Interfaz gráfica de usuario
+\end{itemize}
+
+Cada módulo opera de forma secuencial y desacoplada, facilitando la escalabilidad y el mantenimiento del sistema.
+
+\subsection{Segmentación semántica de prendas}
+
+Para la segmentación de las prendas se emplea un modelo de aprendizaje profundo basado en la arquitectura \textit{SegFormer B2}, entrenado específicamente para la detección de ropa:
+
+\begin{quote}
+\texttt{mattmdjaga/segformer\_b2\_clothes}
+\end{quote}
+
+El modelo realiza una segmentación semántica a nivel de píxel, generando un mapa de clases que identifica distintas categorías de prendas como parte superior, pantalones, faldas, vestidos y calzado. Posteriormente, el mapa de segmentación se reescala al tamaño original de la imagen y se visualiza mediante una superposición de colores que facilita la interpretación de los resultados.
+
+\subsection{Clasificación de prendas de vestir}
+
+Las regiones correspondientes a prendas de ropa, obtenidas a partir de la segmentación semántica, se recortan de la imagen original y se procesan individualmente mediante un modelo de clasificación de imágenes:
+
+\begin{quote}
+\texttt{wargoninnovation/wargon-clothing-classifier}
+\end{quote}
+
+Este modelo predice la categoría de cada prenda y proporciona una probabilidad asociada que indica el grado de confianza de la predicción.
+
+\subsection{Clasificación de calzado}
+
+Las regiones identificadas como calzado se procesan utilizando un modelo específico basado en la arquitectura \textit{SigLIP}:
+
+\begin{quote}
+\texttt{prithivMLmods/shoe-type-detection}
+\end{quote}
+
+El sistema clasifica el tipo de calzado en una de las siguientes categorías:
+
+\begin{itemize}
+    \item Cholas/Bailarinas
+    \item Botas
+    \item Mocasines
+    \item Zuecos
+    \item Deportivas
+\end{itemize}
+
+Como resultado, se obtiene la clase más probable junto con su correspondiente porcentaje de confianza.
+
+\subsection{Obtención de contexto}
+
+\subsubsection{Ubicación geográfica}
+
+La ubicación del usuario se determina automáticamente mediante la API \texttt{ipinfo.io}, a partir de la dirección IP. Se obtienen datos de ciudad, región y coordenadas geográficas, los cuales se traducen al español para su presentación en la interfaz.
+
+\subsubsection{Información meteorológica}
+
+La información meteorológica se obtiene en tiempo real mediante la API \textit{Open-Meteo}, utilizando las coordenadas geográficas previamente obtenidas. Los datos recuperados incluyen la temperatura actual, la velocidad del viento y el estado del clima.
+
+\subsubsection{Hora actual}
+
+La hora del sistema se utiliza como variable contextual adicional para mejorar la personalización de la recomendación final.
+
+\subsection{Sistema de recomendación}
+
+El sistema de recomendación se implementa como un servicio externo accesible mediante una API REST desarrollada con FastAPI. A dicho servicio se le envían la ubicación del usuario, las prendas detectadas, la hora actual y la temperatura. Como respuesta, el sistema recibe una recomendación textual personalizada acorde al contexto climático y la vestimenta identificada.
+
+\subsection{Interfaz gráfica de usuario}
+
+La interacción con el sistema se realiza mediante una interfaz gráfica desarrollada con la librería Gradio. La interfaz permite la carga de imágenes, la visualización de la segmentación de prendas, una galería con las prendas detectadas, información meteorológica y la recomendación final de outfit.
+\subsection{Servidor de recomendación de vestimenta}
+
+El sistema incorpora un servidor de recomendación independiente que actúa como backend para la generación de sugerencias de outfit. Este servidor se implementa utilizando la librería estándar \texttt{http.server} de Python, evitando dependencias externas y facilitando su despliegue en entornos locales o controlados.
+
+El servidor expone una API REST ligera que escucha en el puerto \texttt{8000} y gestiona las siguientes rutas:
+
+\begin{itemize}
+    \item \texttt{/}: endpoint informativo que confirma el funcionamiento del servicio.
+    \item \texttt{/health}: endpoint de monitorización que devuelve el estado del servidor y una marca temporal.
+    \item \texttt{/recommend}: endpoint principal encargado de generar recomendaciones de vestimenta.
+\end{itemize}
+
+La comunicación entre el sistema de análisis visual y el servidor se realiza mediante peticiones HTTP \texttt{POST} en formato JSON.
+
+\subsection{Modelo de datos de entrada}
+
+Para estructurar la información recibida, el servidor define un objeto de tipo \texttt{ClothingRequest}, que encapsula las siguientes variables contextuales:
+
+\begin{itemize}
+    \item Localización del usuario
+    \item Prendas detectadas en la imagen
+    \item Hora actual
+    \item Temperatura
+\end{itemize}
+
+Este modelo de datos permite un manejo coherente y extensible de la información utilizada para la generación de recomendaciones.
+
+\subsection{Integración con modelos de lenguaje (Ollama)}
+
+La generación de recomendaciones se realiza mediante la integración con un modelo de lenguaje de gran escala (LLM) desplegado localmente a través de la plataforma Ollama. El servidor se comunica con Ollama utilizando una API compatible con el formato de \textit{chat completions}.
+
+El modelo utilizado es:
+
+\begin{quote}
+\texttt{deepseek-v3.1:671b-cloud}
+\end{quote}
+
+La solicitud enviada al modelo incluye un mensaje de sistema que define el rol del asistente como experto en clima, hora y vestimenta, así como un mensaje de usuario que contiene el contexto completo de la situación del usuario.
+
+El prompt está diseñado para que el modelo:
+\begin{itemize}
+    \item Evalúe si la vestimenta es adecuada para el clima y la hora
+    \item Indique si el usuario va demasiado abrigado o con poca ropa
+    \item Sugiera posibles cambios sin describir explícitamente el outfit actual
+\end{itemize}
+
+\subsection{Gestión de errores y tolerancia a fallos}
+
+El servidor implementa mecanismos de manejo de errores para garantizar la continuidad del servicio. En caso de que la comunicación con Ollama falle, el sistema genera una respuesta alternativa simulada basada en reglas simples y en la información contextual disponible.
+
+Este enfoque permite que el sistema continúe funcionando incluso cuando el modelo de lenguaje no está disponible, mejorando la robustez global de la solución.
+
+\subsection{Formato de respuesta}
+
+La respuesta del servidor se devuelve en formato JSON e incluye los siguientes campos:
+
+\begin{itemize}
+    \item Identificador único de la recomendación
+    \item Marca temporal de generación
+    \item Modelo utilizado
+    \item Recomendación textual generada
+\end{itemize}
+
+Esta estructura facilita la integración con la interfaz gráfica y con otros posibles consumidores del servicio.
+
+
+
 
 	
 	\newpage
 	\section{Fuentes y tecnologías utilizadas}
-	Las fuentes que se han utilizado han sido roboflow para la obtención de los datasets de los modelos preentrenados,la fuente oficial de 
-	ultralytics,la documentación oficial de la api open-meteo y las tecnologías utilizadas son python,cv2,yolo,cnn. 
-
+	Las principales tecnologías y herramientas empleadas en el desarrollo del proyecto son:
+	\begin{itemize}
+    	\item Python
+    	\item PyTorch
+    	\item Hugging Face Transformers
+    	\item Visión por computador
+    	\item APIs REST
+    	\item Gradio
+    	\item FastAPI
+	\end{itemize}
+	
 	\newpage
 	\section{Conclusiones y propuestas de ampliación}
 	Como conclusión del proyecto se ha pensado que podría ayudar a gente a decidir más rápido sus prendas y accesorios para salir sin 
 	preocuparse de ver noticias o si eres muy depistado.
-	En cuanto a propuestas de ampliación sería mejorar el diagnostico estableciendo características de las telas de las prendas y una posible
-	integración de voz para decirle a la gente la forma tanto escrito como oral para ayudar a las personas que no son capaces de verse.
+	En cuanto a propuestas de ampliación sería mejorar el diagnostico cambiando el modelo de segmentación semántica por instancia,modulo de
+	voz para personas no puedan ver el texto de la recomendación,mejoras de rendimiento del servidor con el LLM
 
 	\newpage
 	\section{Indicación de herramientas/tecnologías con las que les hubiera gustado contar}
@@ -114,6 +247,64 @@
 	
 	\newpage
 	\section{Creditos materiales no originales del grupo}
-	1. Fotos
-	2. Datasets
+
+En el desarrollo del presente proyecto se han utilizado diversos recursos, modelos y servicios externos que no han sido desarrollados por el grupo, y cuyo uso ha sido fundamental para la implementación del sistema. A continuación, se detallan dichos materiales junto con su finalidad dentro del proyecto.
+
+\subsection{Modelos de aprendizaje profundo}
+
+\begin{itemize}
+    \item \textbf{SegFormer B2 para segmentación de ropa}:  
+    Modelo de segmentación semántica entrenado para la detección de prendas de vestir a nivel de píxel.  
+    Fuente: \texttt{mattmdjaga/segformer\_b2\_clothes} (Hugging Face).
+
+    \item \textbf{Modelo de clasificación de prendas de vestir}:  
+    Modelo de clasificación de imágenes utilizado para identificar el tipo de prenda a partir de regiones segmentadas.  
+    Fuente: \texttt{wargoninnovation/wargon-clothing-classifier} (Hugging Face).
+
+    \item \textbf{Modelo de clasificación de calzado basado en SigLIP}:  
+    Modelo especializado en la detección de tipos de calzado.  
+    Fuente: \texttt{prithivMLmods/shoe-type-detection} (Hugging Face).
+
+    \item \textbf{Modelo de lenguaje de gran escala (LLM)}:  
+    Modelo utilizado para la generación de recomendaciones de vestimenta en función del contexto climático y temporal.  
+    Fuente: \texttt{deepseek-v3.1:671b-cloud}, desplegado localmente mediante Ollama.
+\end{itemize}
+
+\subsection{APIs y servicios externos}
+
+\begin{itemize}
+    \item \textbf{API de geolocalización por IP}:  
+    Servicio utilizado para obtener la ciudad, región y coordenadas geográficas del usuario a partir de su dirección IP.  
+    Fuente: \texttt{ipinfo.io}.
+
+    \item \textbf{API meteorológica Open-Meteo}:  
+    Servicio empleado para la obtención de información meteorológica en tiempo real, incluyendo temperatura, viento y estado del clima.  
+    Fuente: \texttt{open-meteo.com}.
+
+    \item \textbf{API de modelos de lenguaje (Ollama)}:  
+    Plataforma utilizada para la ejecución local de modelos de lenguaje y la generación de texto mediante una API compatible con \textit{chat completions}.  
+    Fuente: \texttt{ollama.ai}.
+\end{itemize}
+
+\subsection{Librerías y frameworks de software}
+
+\begin{itemize}
+    \item \textbf{PyTorch}:  
+    Framework de aprendizaje profundo utilizado para la ejecución de los modelos de segmentación y clasificación.
+
+    \item \textbf{Hugging Face Transformers}:  
+    Librería empleada para la carga y uso de modelos preentrenados de visión por computador y clasificación de imágenes.
+
+    \item \textbf{Gradio}:  
+    Librería utilizada para el desarrollo de la interfaz gráfica de usuario interactiva.
+
+    \item \textbf{Requests}:  
+    Librería empleada para la comunicación HTTP con APIs externas y servicios REST.
+
+    \item \textbf{NumPy y PIL}:  
+    Librerías utilizadas para el procesamiento y manipulación de imágenes.
+\end{itemize}
+
+
+
 \end{document}
